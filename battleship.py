@@ -39,21 +39,22 @@ def select_ship(table):
     return ship_type, orientation, position
 
 def is_ship_on_table(table, ship_type, orientation, row, col):
-    ship=[]
     
+    if ship_type == '1':
+            ship = ["x","x","x"]
+            
+    elif ship_type == '2':
+            ship = ["x","x"]
+            
     if orientation == '1':
-        if ship_type == '1': 
-            if is_valid_input(abc,table,position):
+        if col + len(ship) <= len(table): 
+            return True
+        return False
 
-                return True, [(row,col),(row,col+1),(row,col+2)]
-            return False
-        elif ship_type == '2':
-            if is_valid_input(abc,table,position):
-                return True
-            return False
-    if orientation == '2':
-        if ship_type == '1': 
-            pass
+    elif orientation == '2':
+        if row + len(ship) <= len(table): 
+            return True
+        return False
             
     
 def put_ship(table, ship): 
