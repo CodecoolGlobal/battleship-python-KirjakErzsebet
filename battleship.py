@@ -1,25 +1,27 @@
-from re import I
 import string
 import sys
 import os
 import time
-import copy
+
+from asciiart import welcome, start_journey
+
 
 def choose_size():
     size = None
-    while size not in [5,10]:
-        size = input("Please choose the size of the table: 5 or 10 \n")
+    while size not in range(5,11):
+        size = input("Please choose the size of the table: 5 to 10 \n")
         if size == "quit":
             sys.exit()
         try:
             size= int(size)
-            if size not in [5,10]:
-                print("\nWrong size! Please choose from 5 or 10! \n")
+            if size not in range(5,11):
+                print("\nWrong size! Please choose from 5 to 10! \n")
                 continue
         except ValueError:
-            print("\nPlease choose from 5 or 10! \n")
+            print("\nPlease choose from 5 to 10! \n")
         
     return size
+
 
 def init_table(size):
     table = []
@@ -117,7 +119,7 @@ def validate_ship(table, ship_type):
                 else:
                     is_valid = False
         else:
-             is_valid = False
+            is_valid = False
     
     return is_valid, ship
 
@@ -131,17 +133,23 @@ def put_ship(table, ship_type):
             table[row][col] = "X"
         return table, is_valid, ship
     else:
-        print("Invalid ship!")
+        print("\nShips are too close!\n")
         return table, is_valid, ship
 
 def wait_for_another_player(size):
     time.sleep(1)
     os.system('cls' if os.name == 'nt' else 'clear')
     print("Next player's placement phase.")
-    try:
-        input("Press any button to continue")
-    except SyntaxError:
-        pass
+    input("Press any button!")
+    # while True:
+    #     if keyboard.read_key() == "p":
+    #         break
+    #     elif keyboard.read_key() != "p":
+    #         break
+    # x = 0
+    # while x == 0:
+    #     x = sys.stdin.read(1)[0]
+
     new_table = init_table(size)
     return new_table
 
@@ -162,29 +170,29 @@ def put_all_ships(table, size):
     print_table(table)
     return table, ships_list
 
+
 def shooting_phase(table, board, ships_list):
     row, col = ask_valid_input(table)
     if table[row][col] == "O":
-        board[row][col] = "M"
+        board[row][col] = "\033[31mM\033[0m"
         print("\nYou've missed!\n")
     elif table[row][col] == "X":
-        board[row][col] = "H"
+        board[row][col] = "\033[33mH\033[0m"
         print("\nYou've hit a ship!\n")
     is_ship_shink = 0
     for ship in ships_list:
         for place in ship:
-            if board[place[0]][place[1]] == "H":
+            if board[place[0]][place[1]] == "\033[33mH\033[0m":
                 is_ship_shink += 1
         if is_ship_shink == len(ship):
             for place in ship:
-                board[place[0]][place[1]] = "S"
+                board[place[0]][place[1]] = "\033[32mS\033[0m"
             print("\nYou've sunk a ship!\n")
             return board
         else:
             continue
 
     return board
-
 
 
 def display_boards(board_player1, board_player2):
@@ -203,7 +211,6 @@ def display_boards(board_player1, board_player2):
     for line1, line2 in zip(board1, board2):
         print(f"{line1}  {line2}")
 
-#cmp(table, board)
 
 def flatten_list(_2d_list):
     flat_list = []
@@ -217,16 +224,17 @@ def flatten_list(_2d_list):
             flat_list.append(element)
     return flat_list
 
+
 def is_won(board, table, player):
     flat_board = flatten_list(board)
     flat_table = flatten_list(table)
-    if flat_board.count('S') == flat_table.count('X'):
+    if flat_board.count('\033[32mS\033[0m') == flat_table.count('X'):
         return player
     return ''
 
 
-
 def main():
+    welcome()
     winner = ''
     size = choose_size()
     table1 = init_table(size)
@@ -235,13 +243,14 @@ def main():
     table_player2, ships_player2 = put_all_ships(table2, size)
     time.sleep(1)
     os.system('cls' if os.name == 'nt' else 'clear')
+    start_journey()
     board_player1 = init_table(size)
     board_player2 = init_table(size)
     display_boards(board_player1, board_player2)
     player = 1
     while True:
         if player == 1:
-            print(f"Player {player}'s turn:")
+            print(f"\nPlayer {player}'s turn:")
             board_player2 = shooting_phase(table_player2, board_player2, ships_player2)
             display_boards(board_player1, board_player2)
             winner = is_won(board_player2, table_player2, player)
@@ -257,8 +266,11 @@ def main():
                 break
             player = 1
         
-    print(f"\nPlayer {winner} has won the game!\n")
+    print(f"\nPlayer {winner} wins!\n")
+
     
+
+
 
 
 if __name__ == "__main__":
