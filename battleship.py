@@ -1,11 +1,25 @@
+from re import I
 import string
 import sys
+import os
+import time
+import copy
 
-# table class
-
-# size_of_table = 5
-# num_of_ships = math.floor(5/2)
-
+def choose_size():
+    size = None
+    while size not in [5,10]:
+        size = input("Please choose the size of the table: 5 or 10 \n")
+        if size == "quit":
+            sys.exit()
+        try:
+            size= int(size)
+            if size not in [5,10]:
+                print("\nWrong size! Please choose from 5 or 10! \n")
+                continue
+        except ValueError:
+            print("\nPlease choose from 5 or 10! \n")
+        
+    return size
 
 def init_table(size):
     table = []
@@ -26,7 +40,7 @@ def ask_valid_input(table):
     columns = [str(num) for num in range(len(table) + 1)]
     row, col = (-1, -1)
     while (row, col) == (-1, -1):
-        coordinates = input("Please give me a coordinate!")
+        coordinates = input("\nPlease give me a coordinate! \n")
         if coordinates == "quit":  # quit
             sys.exit()
         coordinates = list(coordinates)
@@ -39,22 +53,23 @@ def ask_valid_input(table):
             row = rows.index(coordinates[0])
             col = int(coordinates[1]) - 1
         else:
-            print("\nInvalid coordinates!")
+            print("\nInvalid coordinates!\n")
     return row, col
 
 
 def select_ship(table, ship_type):
     ship_types = {3: "Cruiser", 2: "Destroyer"}
+    ship_lenght = {v:k for k,v in ship_types.items()}
     orientation = 0
     while orientation not in [1, 2]:
         orientation = input(
-            f"\nChoose orientation for your {ship_types[ship_type]}: 1 - Horizontal, 2 - Vertical \n"
+            f"\nChoose orientation for your {ship_types[ship_type]} (lenght:{ship_lenght[ship_types[ship_type]]}): \n1 - Horizontal,     2 - Vertical \n"
         )
         try:
             orientation = int(orientation)
 
         except ValueError:
-            print("\nInvalid orientation!")
+            print("\nInvalid orientation!\n")
             continue
 
     row, col = ask_valid_input(table)
@@ -70,41 +85,31 @@ def select_ship(table, ship_type):
     return ship
 
 
-"""Vertical A1 Cruiser should looks like : [(0,0),(0,1),(0,2)]
-TABLE [["x","x","o","o","o"],
-       ["o","o","o","o","o"],
-       ["o","o","o","o","o"],
-       ["o","o","o","o","o"],
-       ["o","o","o","o","o"]
-       """
-
-
 def generate_neighbors(row, col, table):
     neighbors = [
         (row - 1, col),  # top neighbor
         (row, col + 1),  # right neighbor
         (row + 1, col),  # bottom neighbor
-        (row, col - 1),
-    ]  # left neighbor
+        (row, col - 1),  # left neighbor
+    ]  
     new_neighbors = []
     for pos in neighbors:
-        print(all(pos))
-        if all(i > len(table) for i in pos) and all(i >= 0 for i in pos):
+        if (0 <=pos[0] < len(table)) and (0 <= pos[1] < len(table)):
             new_neighbors.append(pos)
-
     return new_neighbors
 
 
-def validate_ship(table, ship, ship_type):
+def validate_ship(table, ship_type):
+    ship = select_ship(table, ship_type)
     while ship[-1][0] >= len(table) or ship[-1][1] >= len(table):
         print("\nShip is out of the table!")
         print_table(table)
-        select_ship(table, ship_type)
+        ship = select_ship(table, ship_type)
     is_valid = True
     for element in ship:
         row = element[0]
         col = element[1]
-        if table[row][col] == "O":
+        if table[row][col] == "O" :
             neigh = generate_neighbors(row, col, table)
             for el in neigh:
                 if table[el[0]][el[1]] == "O":
@@ -112,45 +117,148 @@ def validate_ship(table, ship, ship_type):
                 else:
                     is_valid = False
         else:
-            is_valid = False
-        return is_valid
+             is_valid = False
+    
+    return is_valid, ship
 
 
-def put_ship(table, ship, ship_type):
-    if validate_ship(table, ship, ship_type):
+def put_ship(table, ship_type):
+    is_valid, ship = validate_ship(table, ship_type)
+    if is_valid:
         for element in ship:
             row = element[0]
             col = element[1]
             table[row][col] = "X"
-        return table
+        return table, is_valid, ship
     else:
         print("Invalid ship!")
-        return table
+        return table, is_valid, ship
 
+def wait_for_another_player(size):
+    time.sleep(1)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Next player's placement phase.")
+    try:
+        input("Press any button to continue")
+    except SyntaxError:
+        pass
+    new_table = init_table(size)
+    return new_table
 
-# def guess():
-
-
-def update_board(guess, board, ship, guesses):
-    pass
-
-
-def main():
-    table = init_table(5)
-    size = len(table)
+def put_all_ships(table, size):
     count_ships = 0
+    ships_list = []
     ship_type = 2
     while count_ships != size // 2:
         print_table(table)
-        ship = select_ship(table, ship_type)
-        table = put_ship(table, ship, ship_type)
-        if validate_ship(table, ship, ship_type):
+        table, is_valid, ship = put_ship(table, ship_type)
+        ships_list.append(ship)
+        if is_valid:
             count_ships += 1
             if ship_type == 2:
                 ship_type = 3
             else:
                 ship_type = 2
     print_table(table)
+    return table, ships_list
+
+def shooting_phase(table, board, ships_list):
+    row, col = ask_valid_input(table)
+    if table[row][col] == "O":
+        board[row][col] = "M"
+        print("\nYou've missed!\n")
+    elif table[row][col] == "X":
+        board[row][col] = "H"
+        print("\nYou've hit a ship!\n")
+    is_ship_shink = 0
+    for ship in ships_list:
+        for place in ship:
+            if board[place[0]][place[1]] == "H":
+                is_ship_shink += 1
+        if is_ship_shink == len(ship):
+            for place in ship:
+                board[place[0]][place[1]] = "S"
+            print("\nYou've sunk a ship!\n")
+            return board
+        else:
+            continue
+
+    return board
+
+
+
+def display_boards(board_player1, board_player2):
+    board1 = board_player1.copy()
+    board2 = board_player2.copy()
+    print("Player 1     Player 2")
+    abc = list(string.ascii_uppercase)
+    boards = (board1, board2)
+    for board in boards:
+        for index, row in enumerate(board):
+            board[index] = str(abc[index]+ ' ' + ' '.join(row))
+
+        first_line = str('  ' +' '.join([str(num + 1) for num in range(len(board))]))
+        board.insert(0, first_line)
+        
+    for line1, line2 in zip(board1, board2):
+        print(f"{line1}  {line2}")
+
+#cmp(table, board)
+
+def flatten_list(_2d_list):
+    flat_list = []
+    # Iterate through the outer list
+    for element in _2d_list:
+        if type(element) is list:
+            # If the element is of type list, iterate through the sublist
+            for item in element:
+                flat_list.append(item)
+        else:
+            flat_list.append(element)
+    return flat_list
+
+def is_won(board, table, player):
+    flat_board = flatten_list(board)
+    flat_table = flatten_list(table)
+    if flat_board.count('S') == flat_table.count('X'):
+        return player
+    return ''
+
+
+
+def main():
+    winner = ''
+    size = choose_size()
+    table1 = init_table(size)
+    table_player1, ships_player1 = put_all_ships(table1, size)
+    table2 = wait_for_another_player(size)
+    table_player2, ships_player2 = put_all_ships(table2, size)
+    time.sleep(1)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    board_player1 = init_table(size)
+    board_player2 = init_table(size)
+    display_boards(board_player1, board_player2)
+    player = 1
+    while True:
+        if player == 1:
+            print(f"Player {player}'s turn:")
+            board_player2 = shooting_phase(table_player2, board_player2, ships_player2)
+            display_boards(board_player1, board_player2)
+            winner = is_won(board_player2, table_player2, player)
+            if winner != "":
+                break
+            player = 2
+        elif player == 2:
+            print(f"Player {player}'s turn:")
+            board_player1 = shooting_phase(table_player1, board_player1, ships_player1)
+            display_boards(board_player1, board_player2)
+            winner = is_won(board_player1, table_player1, player)
+            if winner != "":
+                break
+            player = 1
+        
+    print(f"\nPlayer {winner} has won the game!\n")
+    
 
 
 if __name__ == "__main__":
