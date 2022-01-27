@@ -2,7 +2,7 @@ import string
 import sys
 import os
 import time
-
+# import keyboard
 from asciiart import welcome, start_journey
 
 
@@ -42,7 +42,7 @@ def ask_valid_input(table):
     columns = [str(num) for num in range(len(table) + 1)]
     row, col = (-1, -1)
     while (row, col) == (-1, -1):
-        coordinates = input("\nPlease give me a coordinate! \n")
+        coordinates = input("\nPlease give me the coordinates! \n")
         if coordinates == "quit":  # quit
             sys.exit()
         coordinates = list(coordinates)
@@ -104,7 +104,7 @@ def generate_neighbors(row, col, table):
 def validate_ship(table, ship_type):
     ship = select_ship(table, ship_type)
     while ship[-1][0] >= len(table) or ship[-1][1] >= len(table):
-        print("\nShip is out of the table!")
+        print("\nCannot place your spaceship in undiscovered area!\n")
         print_table(table)
         ship = select_ship(table, ship_type)
     is_valid = True
@@ -133,23 +133,14 @@ def put_ship(table, ship_type):
             table[row][col] = "X"
         return table, is_valid, ship
     else:
-        print("\nShips are too close!\n")
+        print("\nAnother spaceship is dangerously close!\n")
         return table, is_valid, ship
 
 def wait_for_another_player(size):
     time.sleep(1)
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("Next player's placement phase.")
-    input("Press any button!")
-    # while True:
-    #     if keyboard.read_key() == "p":
-    #         break
-    #     elif keyboard.read_key() != "p":
-    #         break
-    # x = 0
-    # while x == 0:
-    #     x = sys.stdin.read(1)[0]
-
+    print("Next Spaceship's placement phase.")
+    input("Press any button + enter! \n")
     new_table = init_table(size)
     return new_table
 
@@ -175,10 +166,10 @@ def shooting_phase(table, board, ships_list):
     row, col = ask_valid_input(table)
     if table[row][col] == "O":
         board[row][col] = "\033[31mM\033[0m"
-        print("\nYou've missed!\n")
+        print("\nYou've missed! Refilling...\n")
     elif table[row][col] == "X":
         board[row][col] = "\033[33mH\033[0m"
-        print("\nYou've hit a ship!\n")
+        print("\nEnemy's shield is down!\n")
     is_ship_shink = 0
     for ship in ships_list:
         for place in ship:
@@ -187,7 +178,7 @@ def shooting_phase(table, board, ships_list):
         if is_ship_shink == len(ship):
             for place in ship:
                 board[place[0]][place[1]] = "\033[32mS\033[0m"
-            print("\nYou've sunk a ship!\n")
+            print("\nYou've destroyed the enemy's spaceship!\n")
             return board
         else:
             continue
@@ -198,7 +189,7 @@ def shooting_phase(table, board, ships_list):
 def display_boards(board_player1, board_player2):
     board1 = board_player1.copy()
     board2 = board_player2.copy()
-    print("Player 1     Player 2")
+    print("Spaceship 1  Spaceship 2")
     abc = list(string.ascii_uppercase)
     boards = (board1, board2)
     for board in boards:
@@ -250,7 +241,7 @@ def main():
     player = 1
     while True:
         if player == 1:
-            print(f"\nPlayer {player}'s turn:")
+            print(f"\nSpaceship {player}'s turn:")
             board_player2 = shooting_phase(table_player2, board_player2, ships_player2)
             display_boards(board_player1, board_player2)
             winner = is_won(board_player2, table_player2, player)
@@ -258,7 +249,7 @@ def main():
                 break
             player = 2
         elif player == 2:
-            print(f"Player {player}'s turn:")
+            print(f"Spaceship {player}'s turn:")
             board_player1 = shooting_phase(table_player1, board_player1, ships_player1)
             display_boards(board_player1, board_player2)
             winner = is_won(board_player1, table_player1, player)
@@ -266,7 +257,7 @@ def main():
                 break
             player = 1
         
-    print(f"\nPlayer {winner} wins!\n")
+    print(f"\nCongarts! Spaceship {winner} wins!\n")
 
     
 
