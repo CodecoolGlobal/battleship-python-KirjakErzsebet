@@ -2,7 +2,8 @@ import string
 import sys
 import os
 import time
-# import keyboard
+import keyboard
+from config import version_problem 
 from asciiart import welcome, start_journey
 
 
@@ -140,7 +141,15 @@ def wait_for_another_player(size):
     time.sleep(1)
     os.system('cls' if os.name == 'nt' else 'clear')
     print("Next Spaceship's placement phase.")
-    input("Press any button + enter! \n")
+    if version_problem:
+        input("Press any button + enter! \n")
+    else:
+        # keyboard.wait()
+        while True:
+            if keyboard.read_key() == "p":
+                break
+            elif keyboard.read_key() != "p":
+                break
     new_table = init_table(size)
     return new_table
 
