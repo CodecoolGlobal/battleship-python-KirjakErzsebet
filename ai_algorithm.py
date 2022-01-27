@@ -51,7 +51,7 @@ def put_ai_ship(table, ship_type):
         return table, is_valid, ship
 
 def put_all_ai_ships(table, size):
-    print("Now AI is setting the coordinates for its ships!")
+    print("\nNow AI is setting the coordinates for its ships!\n")
     time.sleep(1)
     count_ships = 0
     ships_list = []
@@ -68,6 +68,22 @@ def put_all_ai_ships(table, size):
                 ship_type = 2
     return table, ships_list
 
+def get_right_coords(table,board):
+    row, col ,orientation = place_ships(table)
+    empty_neighbours = generate_neighbors(row, col, board)
+    for point in empty_neighbours:
+        point1, point2 = point[0], point[1]
+        if board[point1][point2] != "O":
+           continue
+        elif board[point1][point2] == "\033[32mS\033[0m":
+            break
+        elif board[point1][point2] == "O" and board[row][col] == "O":
+            return row, col
+        else:
+            return get_right_coords(table,board)
+    return get_right_coords(table, board)
+            
+
 def get_ai_shooting_coords(table, board):
     for index, list in enumerate(board):
         for index2, item in enumerate(list):
@@ -77,18 +93,18 @@ def get_ai_shooting_coords(table, board):
                     row, col = coord[0], coord[1]
                     if board[row][col] == "O":
                         return row, col
+    
+    return get_right_coords(table, board)
 
-    row, col, orientation = place_ships(table)
-    return row, col
 
 def ai_shooting_phase(table, board, ships_list):
     row, col = get_ai_shooting_coords(table, board)
     if table[row][col] == "O":
         board[row][col] = "\033[31mM\033[0m"
-        print("\nYou've missed!\n")
+        # print("\n\033[31mYou've missed! Refilling...\033[0m\n")
     elif table[row][col] == "X":
         board[row][col] = "\033[33mH\033[0m"
-        print("\nYou've hit a ship!\n")
+        # print("\n\033[33mEnemy's shield is down!\033[0m\n")
     for ship in ships_list:
         is_ship_shink = 0
         for place in ship:
@@ -97,7 +113,7 @@ def ai_shooting_phase(table, board, ships_list):
         if is_ship_shink == len(ship):
             for place in ship:
                 board[place[0]][place[1]] = "\033[32mS\033[0m"
-            print("\nYou've sunk a ship!\n")
+            # print("\n\033[32mYou've destroyed one of the enemy's spaceships!\033[0m\n")
             return board
         else:
             continue

@@ -2,13 +2,24 @@ import string
 import sys
 import os
 import time
-from asciiart import welcome, start_journey
+from asciiart import welcome, start_journey, explosion
 import ai_algorithm
+
+def choose_turn_limit():
+    while True:
+        limit = input('''Please choose a turn limit between 5-50!\n''')
+        if limit.isnumeric():
+            if limit in (str(x) for x in range(4, 51)):
+                return int(limit)
+            else:
+                print(f"\nInvalid input! The chosen {limit} limit is not available!\n")
+        else:
+            print('\nPlease provide a number between 5-50!\n')
 
 
 def choose_mode():
     ai_mode = False
-    mode = input("Please choose mode: 1. Single player, 2. Multiplayer: ")
+    mode = input("\nPlease choose mode: 1. Single player, 2. Multiplayer: \n")
     if mode == "1":
         ai_mode = True
     return ai_mode
@@ -112,7 +123,7 @@ def generate_neighbors(row, col, table):
 def validate_ship(table, ship_type):
     ship = select_ship(table, ship_type)
     while ship[-1][0] >= len(table) or ship[-1][1] >= len(table):
-        print("\nCannot place your spaceship in undiscovered area!\n")
+        print("\nYou can't place your spaceship in the unexplored area!\n")
         print_table(table)
         ship = select_ship(table, ship_type)
     is_valid = True
@@ -192,10 +203,13 @@ def shooting_phase(table, board, ships_list):
     row, col = ask_valid_input(table)
     if table[row][col] == "O":
         board[row][col] = "\033[31mM\033[0m"
-        print("\nYou've missed! Refilling...\n")
+        print("\n\033[31mYou've missed! Refilling...\033[0m\n")
+    elif board[row][col] != "O":
+        print("This coordinate has been already tried!")
+        return shooting_phase(table, board, ships_list)
     elif table[row][col] == "X":
         board[row][col] = "\033[33mH\033[0m"
-        print("\nEnemy's shield is down!\n")
+        print("\n\033[33mEnemy's shield is down!\033[0m\n")
 
     for ship in ships_list:
         is_ship_shink = 0
@@ -206,7 +220,8 @@ def shooting_phase(table, board, ships_list):
         if is_ship_shink == len(ship):
             for place in ship:
                 board[place[0]][place[1]] = "\033[32mS\033[0m"
-            print("\nYou've destroyed one of the enemy's spaceships!\n")
+            print("\n\033[32mYou've destroyed one of the enemy's spaceships!\033[0m\n")
+            explosion()
             return board
         else:   
             continue
@@ -214,10 +229,14 @@ def shooting_phase(table, board, ships_list):
     return board
 
 
-def display_boards(board_player1, board_player2):
+def display_boards(board_player1, board_player2, player):
     board1 = board_player1.copy()
     board2 = board_player2.copy()
-    print("Spaceships 1  Spaceships 2")
+    print("Status maps:")
+    if player == 1:
+        print("Yours        Enemy's")
+    else:
+        print("Enemy's      Yours")
     abc = list(string.ascii_uppercase)
     boards = (board1, board2)
     for board in boards:
@@ -262,6 +281,7 @@ def main():
     ai_mode = choose_mode()
     winner = ''
     size = choose_size()
+    limit = choose_turn_limit()
     table1 = init_table(size)
     table_player1, ships_player1 = put_all_ships(table1, size)
     table2 = wait_for_another_player(size)
@@ -274,27 +294,33 @@ def main():
     start_journey()
     board_player1 = init_table(size)
     board_player2 = init_table(size)
-    display_boards(board_player1, board_player2)
     player = 1
-    while True:
+    display_boards(board_player1, board_player2, player)
+    while limit != 0:
+
+        print(f"\n\033[34mTurns left: {limit}\033[0m\n")
         if player == 1:
             board_player2, winner = shooting_turns(player, table_player2, board_player2, ships_player2)
-            display_boards(board_player1, board_player2)
+            display_boards(board_player1, board_player2, player)
             if winner != "":
                 break
             player = 2
         elif player == 2:
+            limit -= 1
             if ai_mode:
                 board_player1, winner = ai_algorithm.ai_shooting_turn(player, table_player1, board_player1, ships_player1)
                 time.sleep(2)
             else:
                 board_player1, winner = shooting_turns(player, table_player1, board_player1, ships_player1)
-            display_boards(board_player1, board_player2)
+            display_boards(board_player1, board_player2, player)
             if winner != "":
                 break
             player = 1
-        
-    print(f"\nCongrats! Spaceship {winner} wins!\n")
+            
+    if winner == "":
+        print("\nDespite all the damage both of you survived!\n")
+    else:
+        print(f"\nCongrats! Player {winner} won the battle!\n")
 
 
 if __name__ == "__main__":
