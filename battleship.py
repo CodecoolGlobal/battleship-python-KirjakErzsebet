@@ -238,9 +238,9 @@ def display_boards(board_player1, board_player2, player):
     board2 = board_player2.copy()
     print("\nStatus maps:\n")
     if player == 1:
-        print("     Yours        Enemy's")
+        print("Yours        Enemy's")
     else:
-        print("     Enemy's      Yours")
+        print("Enemy's      Yours")
     abc = list(string.ascii_uppercase)
     boards = (board1, board2)
     for board in boards:
