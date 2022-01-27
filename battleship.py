@@ -148,7 +148,6 @@ def validate_ship(table, ship_type, board, select_ship, ai_mode, player):
 
     return is_valid, ship
 
-
 def put_ship(table, ship_type, board, select_ship, ai_mode, player):
     is_valid, ship = validate_ship(table, ship_type, board, select_ship, ai_mode, player)
     if is_valid:
@@ -184,7 +183,7 @@ def wait_for_another_player(size):
             finally:
                 termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
-    print("Press any key to continue!")
+    print("\nPress any key to continue!\n")
     getch()
     new_table = init_table(size)
     return new_table
@@ -256,11 +255,11 @@ def shooting_phase(player, table, board, ships_list, ai_mode, ask_valid_input):
 def display_boards(board_player1, board_player2, player):
     board1 = board_player1.copy()
     board2 = board_player2.copy()
-    print("Status maps:")
+    print("\nStatus maps:\n")
     if player == 1:
-        print("     Yours        Enemy's")
+        print("Yours        Enemy's")
     else:
-        print("     Enemy's      Yours")
+        print("Enemy's      Yours")
     abc = list(string.ascii_uppercase)
     boards = (board1, board2)
     for board in boards:
@@ -359,7 +358,7 @@ def main():
 
     if winner == "":
         print(
-            "\nNo more turns left! Despite the damages, you both survived and can return home!\n"
+            "\nNo more turns left! Despite the damages, both of you survived and can return home!\n"
         )
         tie()
     else:

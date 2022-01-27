@@ -2,7 +2,7 @@ def welcome():
     print(
         '''
 
-         Welcome! Preparations have started!
+    Welcome! Preparations have started!
      
                    .'.
                    |o|
