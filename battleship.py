@@ -2,9 +2,16 @@ import string
 import sys
 import os
 import time
-import keyboard
-from config import version_problem 
 from asciiart import welcome, start_journey
+import ai_algorithm
+
+
+def choose_mode():
+    ai_mode = False
+    mode = input("Please choose mode: 1. Single player, 2. Multiplayer: ")
+    if mode == "1":
+        ai_mode = True
+    return ai_mode
 
 
 def choose_size():
@@ -141,15 +148,25 @@ def wait_for_another_player(size):
     time.sleep(1)
     os.system('cls' if os.name == 'nt' else 'clear')
     print("Next Spaceship's placement phase.")
-    if version_problem:
-        input("Press any button + enter! \n")
-    else:
-        # keyboard.wait()
-        while True:
-            if keyboard.read_key() == "p":
-                break
-            elif keyboard.read_key() != "p":
-                break
+    try:
+        # Win32
+        from msvcrt import getch
+    except ImportError:
+        # UNIX
+        def getch():
+            import tty
+            import termios
+
+            fd = sys.stdin.fileno()
+            old = termios.tcgetattr(fd)
+            try:
+                tty.setraw(fd)
+                return sys.stdin.read(1)
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+    print("Press any key to continue!")
+    getch()
     new_table = init_table(size)
     return new_table
 
@@ -179,17 +196,19 @@ def shooting_phase(table, board, ships_list):
     elif table[row][col] == "X":
         board[row][col] = "\033[33mH\033[0m"
         print("\nEnemy's shield is down!\n")
-    is_ship_shink = 0
+
     for ship in ships_list:
+        is_ship_shink = 0
         for place in ship:
             if board[place[0]][place[1]] == "\033[33mH\033[0m":
                 is_ship_shink += 1
+               
         if is_ship_shink == len(ship):
             for place in ship:
                 board[place[0]][place[1]] = "\033[32mS\033[0m"
-            print("\nYou've destroyed the enemy's spaceship!\n")
+            print("\nYou've destroyed one of the enemy's spaceships!\n")
             return board
-        else:
+        else:   
             continue
 
     return board
@@ -198,7 +217,7 @@ def shooting_phase(table, board, ships_list):
 def display_boards(board_player1, board_player2):
     board1 = board_player1.copy()
     board2 = board_player2.copy()
-    print("Spaceship 1  Spaceship 2")
+    print("Spaceships 1  Spaceships 2")
     abc = list(string.ascii_uppercase)
     boards = (board1, board2)
     for board in boards:
@@ -232,15 +251,24 @@ def is_won(board, table, player):
         return player
     return ''
 
+def shooting_turns(player, table_player, board_player, ships_list):
+    print(f"\nPlayer {player}'s turn:")
+    board_player = shooting_phase(table_player, board_player, ships_list)
+    winner = is_won(board_player, table_player, player)
+    return board_player, winner
 
 def main():
     welcome()
+    ai_mode = choose_mode()
     winner = ''
     size = choose_size()
     table1 = init_table(size)
     table_player1, ships_player1 = put_all_ships(table1, size)
     table2 = wait_for_another_player(size)
-    table_player2, ships_player2 = put_all_ships(table2, size)
+    if ai_mode:
+        table_player2, ships_player2 = ai_algorithm.put_all_ai_ships(table2, size)
+    else:
+        table_player2, ships_player2 = put_all_ships(table2, size)
     time.sleep(1)
     os.system('cls' if os.name == 'nt' else 'clear')
     start_journey()
@@ -250,27 +278,23 @@ def main():
     player = 1
     while True:
         if player == 1:
-            print(f"\nSpaceship {player}'s turn:")
-            board_player2 = shooting_phase(table_player2, board_player2, ships_player2)
+            board_player2, winner = shooting_turns(player, table_player2, board_player2, ships_player2)
             display_boards(board_player1, board_player2)
-            winner = is_won(board_player2, table_player2, player)
             if winner != "":
                 break
             player = 2
         elif player == 2:
-            print(f"Spaceship {player}'s turn:")
-            board_player1 = shooting_phase(table_player1, board_player1, ships_player1)
+            if ai_mode:
+                board_player1, winner = ai_algorithm.ai_shooting_turn(player, table_player1, board_player1, ships_player1)
+                time.sleep(2)
+            else:
+                board_player1, winner = shooting_turns(player, table_player1, board_player1, ships_player1)
             display_boards(board_player1, board_player2)
-            winner = is_won(board_player1, table_player1, player)
             if winner != "":
                 break
             player = 1
         
-    print(f"\nCongarts! Spaceship {winner} wins!\n")
-
-    
-
-
+    print(f"\nCongrats! Spaceship {winner} wins!\n")
 
 
 if __name__ == "__main__":
