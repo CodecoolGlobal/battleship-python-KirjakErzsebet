@@ -85,7 +85,8 @@ def select_ship(table, ship_type):
     orientation = 0
     while orientation not in [1, 2]:
         orientation = input(
-            f"\nChoose orientation for your {ship_types[ship_type]} (lenght:{ship_lenght[ship_types[ship_type]]}): \n1 - Horizontal,     2 - Vertical \n"
+            f"""\nChoose orientation for your {ship_types[ship_type]} (lenght:{ship_lenght[ship_types[ship_type]]}): 
+            1 - Horizontal,     2 - Vertical \n"""
         )
         try:
             orientation = int(orientation)
@@ -237,9 +238,9 @@ def display_boards(board_player1, board_player2, player):
     board2 = board_player2.copy()
     print("Status maps:")
     if player == 1:
-        print("Yours        Enemy's")
+        print("     Yours        Enemy's")
     else:
-        print("Enemy's      Yours")
+        print("     Enemy's      Yours")
     abc = list(string.ascii_uppercase)
     boards = (board1, board2)
     for board in boards:
@@ -289,10 +290,11 @@ def main():
     limit = choose_turn_limit()
     table1 = init_table(size)
     table_player1, ships_player1 = put_all_ships(table1, size)
-    table2 = wait_for_another_player(size)
     if ai_mode:
+        table2 = init_table(size)
         table_player2, ships_player2 = ai_algorithm.put_all_ai_ships(table2, size)
     else:
+        table2 = wait_for_another_player(size)
         table_player2, ships_player2 = put_all_ships(table2, size)
     time.sleep(1)
     os.system("cls" if os.name == "nt" else "clear")
@@ -332,10 +334,12 @@ def main():
             player = 1
 
     if winner == "":
-        print("\nNo more turns left! Despite all the damage both of you survived!\n")
+        print(
+            "\nNo more turns left! Despite the damages, you both survived and can return home!\n"
+        )
         tie()
     else:
-        print(f"\nCongrats! Player {winner} won the battle!\n")
+        print(f"\nCONGRATS! SPACE LORD {winner} won the battle!\n")
         win()
 
 
