@@ -179,7 +179,7 @@ def wait_for_another_player(size):
             finally:
                 termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
-    print("Press any key to continue!")
+    print("\nPress any key to continue!\n")
     getch()
     new_table = init_table(size)
     return new_table
@@ -209,7 +209,7 @@ def shooting_phase(table, board, ships_list):
         board[row][col] = "\033[31mM\033[0m"
         print("\n\033[31mYou've missed! Refilling...\033[0m\n")
     elif board[row][col] != "O":
-        print("This coordinate has been already tried!")
+        print("\nThis coordinate has been already tried!\n")
         return shooting_phase(table, board, ships_list)
     elif table[row][col] == "X":
         board[row][col] = "\033[33mH\033[0m"
@@ -236,7 +236,7 @@ def shooting_phase(table, board, ships_list):
 def display_boards(board_player1, board_player2, player):
     board1 = board_player1.copy()
     board2 = board_player2.copy()
-    print("Status maps:")
+    print("\nStatus maps:\n")
     if player == 1:
         print("     Yours        Enemy's")
     else:
@@ -335,7 +335,7 @@ def main():
 
     if winner == "":
         print(
-            "\nNo more turns left! Despite the damages, you both survived and can return home!\n"
+            "\nNo more turns left! Despite the damages, both of you survived and can return home!\n"
         )
         tie()
     else:
