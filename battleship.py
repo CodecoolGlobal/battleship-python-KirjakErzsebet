@@ -68,6 +68,8 @@ def ask_valid_input(table, board):
         coordinates = input("\nPlease give me the coordinates! \n")
         if coordinates == "quit":  # quit
             sys.exit()
+        elif not coordinates:
+            continue
         coordinates = list(coordinates)
         coordinates[0] = coordinates[0].upper()
         if (
