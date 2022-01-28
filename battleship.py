@@ -68,8 +68,6 @@ def ask_valid_input(table, board):
         coordinates = input("\nPlease give me the coordinates! \n")
         if coordinates == "quit":  # quit
             sys.exit()
-        elif not coordinates:
-            continue
         coordinates = list(coordinates)
         coordinates[0] = coordinates[0].upper()
         if (
@@ -84,23 +82,27 @@ def ask_valid_input(table, board):
     return row, col
 
 
-def select_ship(table, ship_type, board):
+def select_ship(table, ship_type, board, ai_mode, player):
     ship_types = {3: "Cruiser", 2: "Destroyer"}
     ship_lenght = {v: k for k, v in ship_types.items()}
-    orientation = 0
-    while orientation not in [1, 2]:
-        orientation = input(
-            f"""\nChoose orientation for your {ship_types[ship_type]} (lenght:{ship_lenght[ship_types[ship_type]]}): 
-            1 - Horizontal,     2 - Vertical \n"""
-        )
-        try:
-            orientation = int(orientation)
+    if not ai_mode or (ai_mode and player == 1):
+        orientation = 0
+        while orientation not in [1, 2]:
+            orientation = input(
+                f"""\nChoose orientation for your {ship_types[ship_type]} (lenght:{ship_lenght[ship_types[ship_type]]}): 
+                1 - Horizontal,     2 - Vertical \n"""
+            )
+            try:
+                orientation = int(orientation)
 
-        except ValueError:
-            print("\nInvalid orientation!\n")
-            continue
+            except ValueError:
+                print("\nInvalid orientation!\n")
+                continue
 
-    row, col = ask_valid_input(table, board)
+    if ai_mode and player == 2:
+        row, col, orientation = ai_algorithm.place_ships(table)
+    else:
+        row, col = ask_valid_input(table, board)
     ship = []
     for i in range(int(ship_type)):
         if orientation == 1:
@@ -128,12 +130,12 @@ def generate_neighbors(row, col, table):
 
 
 def validate_ship(table, ship_type, board, select_ship, ai_mode, player):
-    ship = select_ship(table, ship_type, board)
+    ship = select_ship(table, ship_type, board, ai_mode, player)
     while ship[-1][0] >= len(table) or ship[-1][1] >= len(table):
         if not ai_mode or (ai_mode and player == 1):
             print("\nYou can't place your spaceship in the unexplored area!\n")
             print_table(table)
-        ship = select_ship(table, ship_type, board)
+        ship = select_ship(table, ship_type, board, ai_mode, player)
     is_valid = True
     for element in ship:
         row = element[0]
@@ -192,7 +194,7 @@ def wait_for_another_player(size):
 
 
 def put_all_ships(table, size, board, ai_mode, player, select_ship):
-    if ai_mode and player == 21:
+    if ai_mode and player == 2:
         print("\nNow AI is setting the coordinates for its ships!\n")
         time.sleep(1)
     count_ships = 0
@@ -317,7 +319,7 @@ def main():
     if ai_mode:
         table2 = init_table(size)
         player = 2
-        table_player2, ships_player2 = put_all_ships(table2, size, board_player1, ai_mode, player, ai_algorithm.select_ai_ship)
+        table_player2, ships_player2 = put_all_ships(table2, size, board_player1, ai_mode, player, select_ship)
     else:
         table2 = wait_for_another_player(size)
         player = 2
