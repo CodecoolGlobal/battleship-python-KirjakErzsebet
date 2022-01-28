@@ -68,6 +68,8 @@ def ask_valid_input(table, board):
         coordinates = input("\nPlease give me the coordinates! \n")
         if coordinates == "quit":  # quit
             sys.exit()
+        if not coordinates:
+            continue
         coordinates = list(coordinates)
         coordinates[0] = coordinates[0].upper()
         if (
@@ -152,8 +154,11 @@ def validate_ship(table, ship_type, board, select_ship, ai_mode, player):
 
     return is_valid, ship
 
+
 def put_ship(table, ship_type, board, select_ship, ai_mode, player):
-    is_valid, ship = validate_ship(table, ship_type, board, select_ship, ai_mode, player)
+    is_valid, ship = validate_ship(
+        table, ship_type, board, select_ship, ai_mode, player
+    )
     if is_valid:
         for element in ship:
             row = element[0]
@@ -203,7 +208,9 @@ def put_all_ships(table, size, board, ai_mode, player, select_ship):
     while count_ships != size // 2:
         if not ai_mode or (ai_mode and player == 1):
             print_table(table)
-        table, is_valid, ship = put_ship(table, ship_type, board, select_ship, ai_mode, player)
+        table, is_valid, ship = put_ship(
+            table, ship_type, board, select_ship, ai_mode, player
+        )
         ships_list.append(ship)
         if is_valid:
             count_ships += 1
@@ -227,7 +234,9 @@ def shooting_phase(player, table, board, ships_list, ai_mode, ask_valid_input):
     elif board[row][col] != "O":
         if not ai_mode or (ai_mode and player == 1):
             print("This coordinate has been already tried!")
-        return shooting_phase(table, board, ships_list)
+        return shooting_phase(
+            player, table, board, ships_list, ai_mode, ask_valid_input
+        )
     elif table[row][col] == "X":
         board[row][col] = "\033[33mH\033[0m"
         if not ai_mode or (ai_mode and player == 1):
@@ -245,7 +254,9 @@ def shooting_phase(player, table, board, ships_list, ai_mode, ask_valid_input):
             for place in ship:
                 board[place[0]][place[1]] = "\033[32mS\033[0m"
             if not ai_mode or (ai_mode and player == 1):
-                print("\n\033[32mYou've destroyed one of the enemy's spaceships!\033[0m\n")
+                print(
+                    "\n\033[32mYou've destroyed one of the enemy's spaceships!\033[0m\n"
+                )
             else:
                 print("\n\033[32mAI've destroyed one of your spaceships!\033[0m\n")
             explosion()
@@ -298,9 +309,13 @@ def is_won(board, table, player):
     return ""
 
 
-def shooting_turns(player, table_player, board_player, ships_list, ai_mode, ask_valid_input):
+def shooting_turns(
+    player, table_player, board_player, ships_list, ai_mode, ask_valid_input
+):
     print(f"Player {player}'s turn:\n")
-    board_player = shooting_phase(player, table_player, board_player, ships_list, ai_mode, ask_valid_input)
+    board_player = shooting_phase(
+        player, table_player, board_player, ships_list, ai_mode, ask_valid_input
+    )
     winner = is_won(board_player, table_player, player)
     return board_player, winner
 
@@ -315,22 +330,28 @@ def main():
     board_player1 = init_table(size)
     board_player2 = init_table(size)
     player = 1
-    table_player1, ships_player1 = put_all_ships(table1, size, board_player1, ai_mode, player, select_ship)
+    table_player1, ships_player1 = put_all_ships(
+        table1, size, board_player1, ai_mode, player, select_ship
+    )
     if ai_mode:
         table2 = init_table(size)
         player = 2
-        table_player2, ships_player2 = put_all_ships(table2, size, board_player1, ai_mode, player, select_ship)
+        table_player2, ships_player2 = put_all_ships(
+            table2, size, board_player1, ai_mode, player, select_ship
+        )
     else:
         table2 = wait_for_another_player(size)
         player = 2
-        table_player2, ships_player2 = put_all_ships(table2, size, board_player2, ai_mode, player, select_ship)
+        table_player2, ships_player2 = put_all_ships(
+            table2, size, board_player2, ai_mode, player, select_ship
+        )
     time.sleep(1)
     os.system("cls" if os.name == "nt" else "clear")
     start_journey()
     time.sleep(1)
     print("All ships are in position and waiting for your orders!\n")
     time.sleep(1)
-    
+
     player = 1
     display_boards(board_player1, board_player2, player)
     while limit != 0:
@@ -338,7 +359,12 @@ def main():
         print(f"\n\033[34mTurns left: {limit}\033[0m\n")
         if player == 1:
             board_player2, winner = shooting_turns(
-                player, table_player2, board_player2, ships_player2, ai_mode, ask_valid_input
+                player,
+                table_player2,
+                board_player2,
+                ships_player2,
+                ai_mode,
+                ask_valid_input,
             )
             display_boards(board_player1, board_player2, player)
             if winner != "":
@@ -348,12 +374,22 @@ def main():
             limit -= 1
             if ai_mode:
                 board_player1, winner = shooting_turns(
-                    player, table_player1, board_player1, ships_player1, ai_mode, ai_algorithm.get_ai_shooting_coords
+                    player,
+                    table_player1,
+                    board_player1,
+                    ships_player1,
+                    ai_mode,
+                    ai_algorithm.get_ai_shooting_coords,
                 )
                 time.sleep(2)
             else:
                 board_player1, winner = shooting_turns(
-                    player, table_player1, board_player1, ships_player1
+                    player,
+                    table_player1,
+                    board_player1,
+                    ships_player1,
+                    ai_mode,
+                    ask_valid_input,
                 )
             display_boards(board_player1, board_player2, player)
             if winner != "":
